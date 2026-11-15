@@ -13,10 +13,10 @@ class ContainsConstraint implements ConstraintInterface
 {
     use ErrorBagProxy;
 
-    /** @var \JsonSchema\Constraints\Factory */
+    /** @var Factory */
     private $factory;
 
-    public function __construct(?\JsonSchema\Constraints\Factory $factory = null)
+    public function __construct(?Factory $factory = null)
     {
         $this->factory = $factory ?: new Factory();
         $this->initialiseErrorBag($this->factory);

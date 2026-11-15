@@ -6,7 +6,7 @@ namespace JsonSchema\Constraints\Drafts\Draft07;
 
 class ContainsConstraint extends \JsonSchema\Constraints\Drafts\Draft06\ContainsConstraint
 {
-    public function __construct(?\JsonSchema\Constraints\Factory $factory = null)
+    public function __construct(?Factory $factory = null)
     {
         parent::__construct($factory ?: new Factory());
     }
