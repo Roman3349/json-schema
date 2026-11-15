@@ -4,35 +4,6 @@ declare(strict_types=1);
 
 namespace JsonSchema\Constraints\Drafts\Draft2019;
 
-use JsonSchema\ConstraintError;
-use JsonSchema\Constraints\ConstraintInterface;
-use JsonSchema\Constraints\Factory;
-use JsonSchema\Entity\ErrorBagProxy;
-use JsonSchema\Entity\JsonPointer;
-
-class ExclusiveMaximumConstraint implements ConstraintInterface
+class ExclusiveMaximumConstraint extends \JsonSchema\Constraints\Drafts\Draft07\ExclusiveMaximumConstraint
 {
-    use ErrorBagProxy;
-
-    public function __construct(?Factory $factory = null)
-    {
-        $this->initialiseErrorBag($factory ?: new Factory());
-    }
-
-    public function check(&$value, $schema = null, ?JsonPointer $path = null, $i = null): void
-    {
-        if (!property_exists($schema, 'exclusiveMaximum')) {
-            return;
-        }
-
-        if (!is_numeric($value)) {
-            return;
-        }
-
-        if ($value < $schema->exclusiveMaximum) {
-            return;
-        }
-
-        $this->addError(ConstraintError::EXCLUSIVE_MAXIMUM(), $path, ['exclusiveMaximum' => $schema->exclusiveMaximum, 'found' => $value]);
-    }
 }

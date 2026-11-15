@@ -13,10 +13,10 @@ class AllOfConstraint implements ConstraintInterface
 {
     use ErrorBagProxy;
 
-    /** @var Factory */
+    /** @var \JsonSchema\Constraints\Factory */
     private $factory;
 
-    public function __construct(?Factory $factory = null)
+    public function __construct(?\JsonSchema\Constraints\Factory $factory = null)
     {
         $this->factory = $factory ?: new Factory();
         $this->initialiseErrorBag($this->factory);
