@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace JsonSchema\Tests\Constraints\Draft2019;
+namespace JsonSchema\Tests\Constraints\Drafts;
 
 use JsonSchema\Constraints\Constraint;
 use JsonSchema\Exception\UnresolvableJsonPointerException;
@@ -11,36 +11,45 @@ use JsonSchema\Validator;
 
 class RefConstraintTest extends VeryBaseTestCase
 {
-    private const DIALECT = 'https://json-schema.org/draft/2019-09/schema';
+    use StrictDialectsProvider;
 
-    public function testAnUnresolvableRefThrowsInsteadOfSilentlyPassing(): void
+    /**
+     * @dataProvider provideStrictDialects
+     */
+    public function testAnUnresolvableRefThrowsInsteadOfSilentlyPassing(string $dialect): void
     {
         $validator = new Validator();
         $data = new \stdClass();
-        $schema = json_decode('{"$schema": "' . self::DIALECT . '", "$ref": "#/$defs/nonExistent"}');
+        $schema = json_decode('{"$schema": "' . $dialect . '", "$ref": "#/$defs/nonExistent"}');
 
         $this->expectException(UnresolvableJsonPointerException::class);
 
         $validator->validate($data, $schema, Constraint::CHECK_MODE_STRICT);
     }
 
-    public function testAnUnresolvableRefInsideAnApplicatorIsNotSwallowed(): void
+    /**
+     * @dataProvider provideStrictDialects
+     */
+    public function testAnUnresolvableRefInsideAnApplicatorIsNotSwallowed(string $dialect): void
     {
         $validator = new Validator();
         $data = new \stdClass();
-        $schema = json_decode('{"$schema": "' . self::DIALECT . '", "anyOf": [{"$ref": "#/$defs/nonExistent"}, {}]}');
+        $schema = json_decode('{"$schema": "' . $dialect . '", "anyOf": [{"$ref": "#/$defs/nonExistent"}, {}]}');
 
         $this->expectException(UnresolvableJsonPointerException::class);
 
         $validator->validate($data, $schema, Constraint::CHECK_MODE_STRICT);
     }
 
-    public function testAResolvableRefStillValidates(): void
+    /**
+     * @dataProvider provideStrictDialects
+     */
+    public function testAResolvableRefStillValidates(string $dialect): void
     {
         $validator = new Validator();
         $data = json_decode('{"child": 1}');
         $schema = json_decode(
-            '{"$schema": "' . self::DIALECT . '", "$defs": {"num": {"type": "integer"}},'
+            '{"$schema": "' . $dialect . '", "$defs": {"num": {"type": "integer"}},'
             . ' "properties": {"child": {"$ref": "#/$defs/num"}}}'
         );
 

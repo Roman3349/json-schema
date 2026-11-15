@@ -17,7 +17,6 @@ class UnevaluatedPropertiesTest extends BaseTestCase
         yield [
             '{"hello":"world","world":"hello","unexpected":true}',
             '{
-                "$schema":"' . DraftIdentifiers::DRAFT_2019_09 . '",
                 "type":"object",
                 "unevaluatedProperties":false,
                 "allOf":[
@@ -31,7 +30,6 @@ class UnevaluatedPropertiesTest extends BaseTestCase
         yield [
             '{"foo":"foo","bar":"bar","baz":"not-baz"}',
             '{
-                "$schema":"' . DraftIdentifiers::DRAFT_2019_09 . '",
                 "type":"object",
                 "unevaluatedProperties":false,
                 "anyOf":[
@@ -45,11 +43,23 @@ class UnevaluatedPropertiesTest extends BaseTestCase
         yield [
             '{"kind":"a","value":"ok","extra":true}',
             '{
-                "$schema":"' . DraftIdentifiers::DRAFT_2019_09 . '",
                 "type":"object",
                 "unevaluatedProperties":false,
                 "if":{"properties":{"kind":{"const":"a"}}},
                 "then":{"properties":{"value":{"type":"string"}}}
+            }',
+            Constraint::CHECK_MODE_STRICT,
+        ];
+
+        yield [
+            '{"foo":1}',
+            '{
+                "type":"object",
+                "unevaluatedProperties":false,
+                "anyOf":[
+                    {"unevaluatedProperties":{"type":"string"}},
+                    true
+                ]
             }',
             Constraint::CHECK_MODE_STRICT,
         ];
@@ -60,7 +70,6 @@ class UnevaluatedPropertiesTest extends BaseTestCase
         yield [
             '{"foo":"foo","bar":"bar","qux":"qux","trigger":"on"}',
             '{
-                "$schema":"' . DraftIdentifiers::DRAFT_2019_09 . '",
                 "type":"object",
                 "properties":{"trigger":{"type":"string"}},
                 "unevaluatedProperties":false,
@@ -77,7 +86,6 @@ class UnevaluatedPropertiesTest extends BaseTestCase
         yield [
             '{"hello":"world","world":"hello"}',
             '{
-                "$schema":"' . DraftIdentifiers::DRAFT_2019_09 . '",
                 "type":"object",
                 "unevaluatedProperties":false,
                 "allOf":[
@@ -91,7 +99,6 @@ class UnevaluatedPropertiesTest extends BaseTestCase
         yield [
             '{"foo":"ok"}',
             '{
-                "$schema":"' . DraftIdentifiers::DRAFT_2019_09 . '",
                 "type":"object",
                 "unevaluatedProperties":false,
                 "additionalProperties":{"type":"string"}
@@ -102,7 +109,6 @@ class UnevaluatedPropertiesTest extends BaseTestCase
         yield [
             '{"foo":"foo","bar":"bar"}',
             '{
-                "$schema":"' . DraftIdentifiers::DRAFT_2019_09 . '",
                 "type":"object",
                 "unevaluatedProperties":false,
                 "anyOf":[
@@ -116,7 +122,6 @@ class UnevaluatedPropertiesTest extends BaseTestCase
         yield [
             '{"kind":"a","value":"ok"}',
             '{
-                "$schema":"' . DraftIdentifiers::DRAFT_2019_09 . '",
                 "type":"object",
                 "unevaluatedProperties":false,
                 "if":{"properties":{"kind":{"const":"a"}}},
@@ -128,11 +133,20 @@ class UnevaluatedPropertiesTest extends BaseTestCase
         yield [
             '{"foo":"foo","bar":"bar"}',
             '{
-                "$schema":"' . DraftIdentifiers::DRAFT_2019_09 . '",
                 "type":"object",
                 "properties":{"foo":{"type":"string"}},
                 "unevaluatedProperties":false,
                 "dependentSchemas":{"foo":{"properties":{"bar":{"type":"string"}}}}
+            }',
+            Constraint::CHECK_MODE_STRICT,
+        ];
+
+        yield [
+            '{"foo":"foo"}',
+            '{
+                "type":"object",
+                "unevaluatedProperties":false,
+                "allOf":[{"unevaluatedProperties":{"type":"string"}}]
             }',
             Constraint::CHECK_MODE_STRICT,
         ];
