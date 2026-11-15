@@ -17,6 +17,7 @@ trait StrictDialectsProvider
     public static function provideStrictDialects(): array
     {
         return [
+            'Draft-04' => [DraftIdentifiers::DRAFT_4],
             'Draft-06' => [DraftIdentifiers::DRAFT_6],
             'Draft-07' => [DraftIdentifiers::DRAFT_7],
             'Draft 2019-09' => [DraftIdentifiers::DRAFT_2019_09],

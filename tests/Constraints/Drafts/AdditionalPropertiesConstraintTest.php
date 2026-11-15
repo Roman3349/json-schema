@@ -70,6 +70,7 @@ class AdditionalPropertiesConstraintTest extends VeryBaseTestCase
     public static function provideAdditionalPropertiesConstraints(): array
     {
         return [
+            'Draft-04' => [Drafts\Draft04\AdditionalPropertiesConstraint::class],
             'Draft-06' => [Drafts\Draft06\AdditionalPropertiesConstraint::class],
             'Draft-07' => [Drafts\Draft07\AdditionalPropertiesConstraint::class],
             'Draft 2019-09' => [Drafts\Draft2019\AdditionalPropertiesConstraint::class],

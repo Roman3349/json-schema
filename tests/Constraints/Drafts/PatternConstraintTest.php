@@ -35,6 +35,7 @@ class PatternConstraintTest extends VeryBaseTestCase
     public static function providePatternConstraints(): array
     {
         return [
+            'Draft-04' => [Drafts\Draft04\PatternConstraint::class],
             'Draft-06' => [Drafts\Draft06\PatternConstraint::class],
             'Draft-07' => [Drafts\Draft07\PatternConstraint::class],
             'Draft 2019-09' => [Drafts\Draft2019\PatternConstraint::class],

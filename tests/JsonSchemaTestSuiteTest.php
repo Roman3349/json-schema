@@ -85,11 +85,7 @@ class JsonSchemaTestSuiteTest extends TestCase
                             $test->valid ? 'valid' : 'invalid'
                         );
 
-                        if ($this->shouldNotYieldTest($name)) {
-                            continue;
-                        }
-
-                        yield $name => [
+                        $case = [
                             'testCaseDescription' => $testCase->description,
                             'testDescription' => $test->description,
                             'schema' => $testCase->schema,
@@ -98,6 +94,16 @@ class JsonSchemaTestSuiteTest extends TestCase
                             'draft' => DraftIdentifiers::fromConstraintName($baseDraftName),
                             'expectedValidationResult' => $test->valid,
                         ];
+
+                        if (!$this->shouldNotYieldTest($name)) {
+                            yield $name => $case;
+                        }
+
+                        // Draft-04 is validated by the legacy constraints by default, and by its own constraint set in strict mode
+                        $strictName = $name . ' (strict mode)';
+                        if ($baseDraftName === 'draft4' && !$this->shouldNotYieldTest($name) && !$this->shouldNotYieldTest($strictName)) {
+                            yield $strictName => array_merge($case, ['checkMode' => $case['checkMode'] | Constraint::CHECK_MODE_STRICT]);
+                        }
                     }
                 }
             }
@@ -425,6 +431,19 @@ class JsonSchemaTestSuiteTest extends TestCase
             '[draft4/optional/format/email.json]: validation of e-mail addresses: a quoted string containing only a space in the local part is valid is expected to be valid',
             '[draft4/optional/format/email.json]: validation of e-mail addresses: a non-ASCII character in the local part is not valid is expected to be invalid',
             '[draft4/optional/format/email.json]: validation of e-mail addresses: a single-label domain is valid is expected to be valid',
+            // Draft-04 in strict mode shares the format implementation with Draft-06, and with it the skipped cases
+            '[draft4/optional/format/email.json]: validation of e-mail addresses: a quoted string with a space in the local part is valid is expected to be valid (strict mode)',
+            '[draft4/optional/format/email.json]: validation of e-mail addresses: a domain that looks like an IPv4 address without brackets is valid is expected to be valid (strict mode)',
+            '[draft4/optional/format/email.json]: validation of e-mail addresses: a quoted string containing only a space in the local part is valid is expected to be valid (strict mode)',
+            '[draft4/optional/format/email.json]: validation of e-mail addresses: a non-ASCII character in the local part is not valid is expected to be invalid (strict mode)',
+            '[draft4/optional/format/email.json]: validation of e-mail addresses: a single-label domain is valid is expected to be valid (strict mode)',
+            '[draft4/optional/format/hostname.json]: validation of host names: exceeds maximum overall length (256) is expected to be invalid (strict mode)',
+            '[draft4/optional/format/uri.json]: validation of URIs: invalid userinfo is expected to be invalid (strict mode)',
+            '[draft4/optional/format/uri.json]: validation of URIs: invalid percent-encoding with non-hex digits is expected to be invalid (strict mode)',
+            '[draft4/optional/format/uri.json]: validation of URIs: incomplete percent-encoding triplet is expected to be invalid (strict mode)',
+            '[draft4/optional/format/uri.json]: validation of URIs: lone percent sign is invalid is expected to be invalid (strict mode)',
+            '[draft4/optional/format/uri.json]: validation of URIs: leading zero in an embedded IPv4 address is invalid is expected to be invalid (strict mode)',
+            '[draft4/optional/format/uri.json]: validation of URIs: a trailing newline after a valid URI is invalid is expected to be invalid (strict mode)',
             '[draft6/optional/format/email.json]: validation of e-mail addresses: a quoted string with a space in the local part is valid is expected to be valid',
             '[draft6/optional/format/email.json]: validation of e-mail addresses: a domain that looks like an IPv4 address without brackets is valid is expected to be valid',
             '[draft6/optional/format/email.json]: validation of e-mail addresses: a quoted string containing only a space in the local part is valid is expected to be valid',

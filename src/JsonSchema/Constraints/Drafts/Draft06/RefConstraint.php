@@ -4,40 +4,10 @@ declare(strict_types=1);
 
 namespace JsonSchema\Constraints\Drafts\Draft06;
 
-use JsonSchema\Constraints\ConstraintInterface;
-use JsonSchema\Entity\ErrorBagProxy;
-use JsonSchema\Entity\JsonPointer;
-
-class RefConstraint implements ConstraintInterface
+class RefConstraint extends \JsonSchema\Constraints\Drafts\Draft04\RefConstraint
 {
-    use ErrorBagProxy;
-
-    /** @var \JsonSchema\Constraints\Factory */
-    private $factory;
-
     public function __construct(?\JsonSchema\Constraints\Factory $factory = null)
     {
-        $this->factory = $factory ?: new Factory();
-        $this->initialiseErrorBag($this->factory);
-    }
-
-    public function check(&$value, $schema = null, ?JsonPointer $path = null, $i = null): void
-    {
-        if (!property_exists($schema, '$ref')) {
-            return;
-        }
-
-        // A $ref that cannot be resolved is a broken schema, not invalid data: the exception
-        // is left to propagate rather than letting the value pass as if the $ref was absent.
-        $refSchema = $this->factory->getSchemaStorage()->resolveRefSchema($schema);
-
-        $schemaConstraint = $this->factory->createInstanceFor('schema');
-        $schemaConstraint->check($value, $refSchema, $path, $i);
-
-        if ($schemaConstraint->isValid()) {
-            return;
-        }
-
-        $this->addErrors($schemaConstraint->getErrors());
+        parent::__construct($factory ?: new Factory());
     }
 }
