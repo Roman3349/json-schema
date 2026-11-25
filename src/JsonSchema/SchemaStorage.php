@@ -68,6 +68,7 @@ class SchemaStorage implements SchemaStorageInterface
      */
     public function addSchema(string $id, $schema = null): void
     {
+        if (is_object($schema) && isset($this->schemas[$id]) && $this->schemas[$id] === $schema) { return; } // PROTOTYPE
         if (is_null($schema) && $id !== self::INTERNAL_PROVIDED_SCHEMA_URI) {
             // if the schema was user-provided to Validator and is still null, then assume this is
             // what the user intended, as there's no way for us to retrieve anything else. User-supplied

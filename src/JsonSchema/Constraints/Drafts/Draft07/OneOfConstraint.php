@@ -28,6 +28,29 @@ class OneOfConstraint implements ConstraintInterface
             return;
         }
 
+        $outerFailFast = Draft07Constraint::$failFast;
+        Draft07Constraint::$failFast = true;
+        try {
+            $matchedSchema = 0;
+            foreach ($schema->oneOf as $oneOfSchema) {
+                $schemaConstraint = $this->factory->createInstanceFor('schema');
+                $schemaConstraint->check($value, $oneOfSchema, $path, $i);
+                if ($schemaConstraint->isValid()) {
+                    $matchedSchema++;
+                }
+            }
+        } finally {
+            Draft07Constraint::$failFast = $outerFailFast;
+        }
+        if ($matchedSchema === 1) {
+            return;
+        }
+        if ($outerFailFast) {
+            $this->addError(ConstraintError::ONE_OF(), $path);
+
+            return;
+        }
+
         $matchedSchema = 0;
         foreach ($schema->oneOf as $oneOfSchema) {
             $schemaConstraint = $this->factory->createInstanceFor('schema');

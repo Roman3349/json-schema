@@ -49,6 +49,9 @@ class ItemsConstraint implements ConstraintInterface
             }
 
             $this->addErrors($schemaConstraint->getErrors());
+            if (Draft07Constraint::$failFast) {
+                return;
+            }
         }
     }
 }

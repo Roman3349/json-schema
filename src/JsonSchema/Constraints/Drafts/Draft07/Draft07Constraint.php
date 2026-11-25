@@ -15,6 +15,9 @@ use JsonSchema\Validator;
 
 class Draft07Constraint extends Constraint
 {
+    /** @var bool PROTOTYPE: stop a branch at its first error */
+    public static $failFast = false;
+
     public function __construct(?\JsonSchema\Constraints\Factory $factory = null)
     {
         parent::__construct(new Factory(
@@ -54,40 +57,65 @@ class Draft07Constraint extends Constraint
             return;
         }
 
-        $this->checkForKeyword('required', $value, $schema, $path, $i);
-        $this->checkForKeyword('contains', $value, $schema, $path, $i);
-        $this->checkForKeyword('properties', $value, $schema, $path, $i);
-        $this->checkForKeyword('propertyNames', $value, $schema, $path, $i);
-        $this->checkForKeyword('patternProperties', $value, $schema, $path, $i);
-        $this->checkForKeyword('type', $value, $schema, $path, $i);
-        $this->checkForKeyword('not', $value, $schema, $path, $i);
-        $this->checkForKeyword('dependencies', $value, $schema, $path, $i);
-        $this->checkForKeyword('allOf', $value, $schema, $path, $i);
-        $this->checkForKeyword('anyOf', $value, $schema, $path, $i);
-        $this->checkForKeyword('oneOf', $value, $schema, $path, $i);
-        $this->checkForKeyword('ifThenElse', $value, $schema, $path, $i);
-
-        $this->checkForKeyword('additionalProperties', $value, $schema, $path, $i);
-        $this->checkForKeyword('items', $value, $schema, $path, $i);
-        $this->checkForKeyword('additionalItems', $value, $schema, $path, $i);
-        $this->checkForKeyword('uniqueItems', $value, $schema, $path, $i);
-        $this->checkForKeyword('minItems', $value, $schema, $path, $i);
-        $this->checkForKeyword('minProperties', $value, $schema, $path, $i);
-        $this->checkForKeyword('maxProperties', $value, $schema, $path, $i);
-        $this->checkForKeyword('minimum', $value, $schema, $path, $i);
-        $this->checkForKeyword('maximum', $value, $schema, $path, $i);
-        $this->checkForKeyword('minLength', $value, $schema, $path, $i);
-        $this->checkForKeyword('exclusiveMinimum', $value, $schema, $path, $i);
-        $this->checkForKeyword('maxItems', $value, $schema, $path, $i);
-        $this->checkForKeyword('maxLength', $value, $schema, $path, $i);
-        $this->checkForKeyword('exclusiveMaximum', $value, $schema, $path, $i);
-        $this->checkForKeyword('enum', $value, $schema, $path, $i);
-        $this->checkForKeyword('const', $value, $schema, $path, $i);
-        $this->checkForKeyword('multipleOf', $value, $schema, $path, $i);
-        $this->checkForKeyword('format', $value, $schema, $path, $i);
-        $this->checkForKeyword('pattern', $value, $schema, $path, $i);
-        $this->checkForKeyword('content', $value, $schema, $path, $i);
+        $keywords = [];
+        foreach (get_object_vars($schema) as $property => $_) {
+            if (isset(self::DISPATCH[$property])) {
+                $keywords[self::DISPATCH[$property][0]] = self::DISPATCH[$property][1];
+            }
+        }
+        ksort($keywords);
+        foreach ($keywords as $keyword) {
+            if (self::$failFast && $this->getErrors() !== []) {
+                return;
+            }
+            $validator = $this->factory->createInstanceFor($keyword);
+            $validator->check($value, $schema, $path, $i);
+            $this->addErrors($validator->getErrors());
+        }
     }
+
+    /** PROTOTYPE: schema property => [position, keyword] */
+    private const DISPATCH = [
+        'required' => [0, 'required'],
+        'contains' => [1, 'contains'],
+        'properties' => [2, 'properties'],
+        'propertyNames' => [3, 'propertyNames'],
+        'patternProperties' => [4, 'patternProperties'],
+        'type' => [5, 'type'],
+        'not' => [6, 'not'],
+        'dependencies' => [7, 'dependencies'],
+        'allOf' => [8, 'allOf'],
+        'anyOf' => [9, 'anyOf'],
+        'oneOf' => [10, 'oneOf'],
+        'if' => [11, 'ifThenElse'],
+        'additionalProperties' => [12, 'additionalProperties'],
+        'items' => [13, 'items'],
+        'additionalItems' => [14, 'additionalItems'],
+        'uniqueItems' => [15, 'uniqueItems'],
+        'minItems' => [16, 'minItems'],
+        'minProperties' => [17, 'minProperties'],
+        'maxProperties' => [18, 'maxProperties'],
+        'minimum' => [19, 'minimum'],
+        'maximum' => [20, 'maximum'],
+        'minLength' => [21, 'minLength'],
+        'exclusiveMinimum' => [22, 'exclusiveMinimum'],
+        'maxItems' => [23, 'maxItems'],
+        'maxLength' => [24, 'maxLength'],
+        'exclusiveMaximum' => [25, 'exclusiveMaximum'],
+        'enum' => [26, 'enum'],
+        'const' => [27, 'const'],
+        'multipleOf' => [28, 'multipleOf'],
+        'format' => [29, 'format'],
+        'pattern' => [30, 'pattern'],
+        'contentMediaType' => [31, 'content'],
+        'contentEncoding' => [31, 'content'],
+    ];
+
+    private const KEYWORD_SCHEMA_PROPERTIES = [
+        'ref' => ['$ref'],
+        'ifThenElse' => ['if'],
+        'content' => ['contentMediaType', 'contentEncoding'],
+    ];
 
     /**
      * Validates the schema against the meta-schema of this draft
@@ -136,9 +164,18 @@ class Draft07Constraint extends Constraint
      */
     protected function checkForKeyword(string $keyword, $value, $schema = null, ?JsonPointer $path = null, $i = null): void
     {
-        $validator = $this->factory->createInstanceFor($keyword);
-        $validator->check($value, $schema, $path, $i);
+        if (self::$failFast && $this->getErrors() !== []) {
+            return;
+        }
+        foreach (self::KEYWORD_SCHEMA_PROPERTIES[$keyword] ?? [$keyword] as $property) {
+            if (property_exists($schema, $property)) {
+                $validator = $this->factory->createInstanceFor($keyword);
+                $validator->check($value, $schema, $path, $i);
 
-        $this->addErrors($validator->getErrors());
+                $this->addErrors($validator->getErrors());
+
+                return;
+            }
+        }
     }
 }
